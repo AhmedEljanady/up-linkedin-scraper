@@ -1,5 +1,5 @@
-const fs = require("fs");
-const puppeteer = require("puppeteer");
+// const fs = require("fs");
+const puppeteer = require("puppeteer-core");
 const express = require("express");
 const cors = require("cors");
 const Exceljs = require("exceljs");
