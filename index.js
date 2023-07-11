@@ -10,8 +10,30 @@ if (process.env.NODE_ENV === "production") {
   const puppeteer = require("puppeteer");
 }
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: "chrome-extension://ijeakdhpkjdhkffgkgdhojgincgpaooo",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.use(function (req, res, next) {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "chrome-extension://ijeakdhpkjdhkffgkgdhojgincgpaooo"
+  );
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 app.get("/", (req, res) => {
+  res.send("hello to scraping server!");
+});
+
+app.get("/scrape", (req, res) => {
   try {
     console.log(`req received`);
 
@@ -52,11 +74,11 @@ app.get("/", (req, res) => {
       const workbook = new Exceljs.Workbook();
       const worksheet = workbook.addWorksheet("Posts");
       worksheet.columns = [
-        { header: "Post Date", key: "date", width: 10 },
-        { header: "Post Likes", key: "likes", width: 10 },
-        { header: "Post Comments", key: "comments", width: 10 },
-        { header: "Post Re-posts", key: "reposts", width: 10 },
-        { header: "Post Impressions", key: "impressions", width: 10 },
+        { header: "Date", key: "date", width: 10 },
+        { header: "Likes", key: "likes", width: 10 },
+        { header: "Comments", key: "comments", width: 10 },
+        { header: "Re-posts", key: "reposts", width: 10 },
+        { header: "Impressions", key: "impressions", width: 10 },
       ];
 
       let items = await page.evaluate(() => {
@@ -109,8 +131,10 @@ app.get("/", (req, res) => {
             ? parseInt(impressionsElement.textContent.replace(/,/g, "").trim())
             : "";
 
+          const isRepost = impressions ? "No" : "Yes";
+
           // const num = ++x;
-          return { date, likes, comments, reposts, impressions };
+          return { date, likes, comments, reposts, impressions, isRepost };
         });
       });
 
@@ -166,7 +190,7 @@ app.get("/", (req, res) => {
       });
       await sleep(5000);
       const { items, buffer } = await scrapeInfiniteScrollItems(page, 100);
-      console.log({ items });
+      // console.log({ items });
       await browser.close();
 
       // Set the response headers to download the Excel file
