@@ -3,11 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const Exceljs = require("exceljs");
 require("dotenv").config();
+let puppeteer;
 
 if (process.env.NODE_ENV === "production") {
-  const puppeteer = require("puppeteer-core");
+  puppeteer = require("puppeteer-core");
 } else {
-  const puppeteer = require("puppeteer");
+  puppeteer = require("puppeteer");
 }
 const app = express();
 const corsOptions = {
