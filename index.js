@@ -1,9 +1,14 @@
 // const fs = require("fs");
-const puppeteer = require("puppeteer-core");
 const express = require("express");
 const cors = require("cors");
 const Exceljs = require("exceljs");
+require("dotenv").config();
 
+if (process.env.NODE_ENV === "production") {
+  const puppeteer = require("puppeteer-core");
+} else {
+  const puppeteer = require("puppeteer");
+}
 const app = express();
 app.use(cors());
 app.get("/", (req, res) => {
@@ -131,6 +136,16 @@ app.get("/", (req, res) => {
 
     (async () => {
       const browser = await puppeteer.launch({
+        args: [
+          "--disable-setuid-sandbox",
+          "--no-sandbox",
+          "--single-process",
+          "--no-zygote",
+        ],
+        executablePath:
+          process.env.NODE_ENV === "production"
+            ? process.env.PUPPETEER_EXECUTABLE_PATH
+            : puppeteer.executablePath(),
         // headless: false,
         headless: "new",
         defaultViewport: { width: 1080, height: 1080 },
