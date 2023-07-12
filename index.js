@@ -5,11 +5,11 @@ const Exceljs = require("exceljs");
 require("dotenv").config();
 let puppeteer;
 
-if (process.env.NODE_ENV === "production") {
-  puppeteer = require("puppeteer-core");
-} else {
-  puppeteer = require("puppeteer");
-}
+// if (process.env.NODE_ENV === "production") {
+// puppeteer = require("puppeteer-core");
+// } else {
+puppeteer = require("puppeteer");
+// }
 const app = express();
 const corsOptions = {
   origin: "chrome-extension://ijeakdhpkjdhkffgkgdhojgincgpaooo",
