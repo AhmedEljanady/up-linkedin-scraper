@@ -39,7 +39,8 @@ app.get("/scrape", (req, res) => {
     console.log(`req received`);
 
     const { url, cookies } = req.query;
-    // console.log(`URL: ${url} *** cookies: ${cookies}`);
+
+    console.log(`URL: ${url} *** cookies: ${JSON.parse(cookies)}`);
 
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
