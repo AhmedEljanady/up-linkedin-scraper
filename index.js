@@ -31,6 +31,7 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", (req, res) => {
+  console.log(`req received`);
   res.send("hello to scraping server!");
 });
 
