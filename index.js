@@ -181,8 +181,9 @@ app.get("/scrape", (req, res) => {
       const page = await browser.newPage();
       console.log(`browser launched...`);
       // await page.setCookie(...cookies);
-      await page.waitForLoadState();
-      console.log(`after wait 1`);
+      // await page.waitForLoadState();
+      // console.log(`after wait 1`);
+      await sleep(2000);
       await page.waitForSelector("body");
       console.log(`after wait 2`);
       // const cookiesString = fs.readFileSync("./cookies.json");
