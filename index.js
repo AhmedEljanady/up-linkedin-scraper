@@ -46,6 +46,7 @@ app.get("/scrape", (req, res) => {
     }
 
     const scrapeInfiniteScrollItems = async (page, itemTargetCount) => {
+      console.log(`scrolling...`);
       // let items = [];
       // let postURL, date, likes, comments, reports, impressions;
       let i = 0;
@@ -90,7 +91,7 @@ app.get("/scrape", (req, res) => {
         );
         // let x = 0;
         console.log(`elements: ${elements.length}`);
-
+        console.log(`scraping posts...`);
         return elements.map((el) => {
           const dateElement = el.querySelector(
             "span.update-components-actor__sub-description > div > span > span.visually-hidden"
@@ -177,6 +178,7 @@ app.get("/scrape", (req, res) => {
         timeout: 0,
       });
       const page = await browser.newPage();
+      console.log(`browser launched...`);
       // await page.setCookie(...cookies);
 
       // const cookiesString = fs.readFileSync("./cookies.json");
@@ -191,6 +193,7 @@ app.get("/scrape", (req, res) => {
       });
       await sleep(5000);
       const { items, buffer } = await scrapeInfiniteScrollItems(page, 100);
+      console.log(`finishing scraping...`);
       // console.log({ items });
       await browser.close();
 
