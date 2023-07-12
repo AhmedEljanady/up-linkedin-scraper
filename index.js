@@ -184,6 +184,7 @@ app.get("/scrape", (req, res) => {
       // const cookiesString = fs.readFileSync("./cookies.json");
       // const cookies2 = JSON.parse(cookiesString);
       await page.setCookie(...JSON.parse(cookies));
+      console.log(`after cookies`);
 
       // console.log(JSON.parse(cookies), " ****** ", cookies2);
       // console.log(JSON.stringify(cookies) === cookies2);
@@ -191,7 +192,9 @@ app.get("/scrape", (req, res) => {
       await page.goto(url, {
         timeout: 0,
       });
+      console.log(`after goto`);
       await sleep(5000);
+      console.log(`after sleep`);
       const { items, buffer } = await scrapeInfiniteScrollItems(page, 100);
       console.log(`finishing scraping...`);
       // console.log({ items });
