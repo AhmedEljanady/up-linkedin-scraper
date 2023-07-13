@@ -3,32 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const Exceljs = require("exceljs");
 require("dotenv").config();
-let puppeteer;
 
-// if (process.env.NODE_ENV === "production") {
-// puppeteer = require("puppeteer-core");
-// } else {
-puppeteer = require("puppeteer");
-// }
+const puppeteer = require("puppeteer");
+
 const app = express();
-const corsOptions = {
-  origin: "chrome-extension://ijeakdhpkjdhkffgkgdhojgincgpaooo",
-  credentials: true,
-};
 
-app.use(cors(corsOptions));
-app.use(function (req, res, next) {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "chrome-extension://ijeakdhpkjdhkffgkgdhojgincgpaooo"
-  );
-  res.header("Access-Control-Allow-Credentials", true);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(cors());
 
 app.get("/", (req, res) => {
   console.log(`req received`);
@@ -41,16 +21,14 @@ app.get("/scrape", (req, res) => {
 
     const { url, cookies } = req.query;
 
-    console.log(`URL: ${url} *** cookies: ${JSON.parse(cookies)}`);
+    // console.log(`URL: ${url} *** cookies: ${JSON.parse(cookies)}`);
 
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    const scrapeInfiniteScrollItems = async (page, itemTargetCount) => {
+    const scrapeInfiniteScrollItems = async (page) => {
       console.log(`scrolling...`);
-      // let items = [];
-      // let postURL, date, likes, comments, reports, impressions;
       let i = 0;
       while (true) {
         console.log(++i);
@@ -82,7 +60,21 @@ app.get("/scrape", (req, res) => {
         { header: "Likes", key: "likes", width: 10 },
         { header: "Comments", key: "comments", width: 10 },
         { header: "Re-posts", key: "reposts", width: 10 },
-        { header: "Impressions", key: "impressions", width: 10 },
+        { header: "Impressions", key: "impressions", width: 12 },
+        { header: "Is Re-Post", key: "isRepost", width: 10 },
+        { header: "Contain Image", key: "containImage", width: 10 },
+        {
+          header: "Contain Linkedin Video",
+          key: "containLinkedinVideo",
+          width: 10,
+        },
+        {
+          header: "Contain External Video",
+          key: "containExternalVideo",
+          width: 10,
+        },
+        { header: "Contain Documents", key: "containDocs", width: 10 },
+        { header: "Contain Article", key: "containArticle", width: 10 },
       ];
 
       let items = await page.evaluate(() => {
@@ -137,73 +129,84 @@ app.get("/scrape", (req, res) => {
 
           const isRepost = impressions ? "No" : "Yes";
 
+          const containImageElement = el.querySelector(
+            ".update-components-image"
+          );
+          const containImage = containImageElement ? "Yes" : "No";
+
+          const containLinkedinVideoElement = el.querySelector(
+            ".update-components-linkedin-video"
+          );
+          const containLinkedinVideo = containLinkedinVideoElement
+            ? "Yes"
+            : "No";
+
+          const containExternalVideoElement = el.querySelector(
+            ".feed-shared-external-video"
+          );
+          const containExternalVideo = containExternalVideoElement
+            ? "Yes"
+            : "No";
+
+          const containArticleElement = el.querySelector(
+            ".update-components-article"
+          );
+          const containArticle = containArticleElement ? "Yes" : "No";
+
+          const containDocsElement = el.querySelector(
+            ".feed-shared-document__container"
+          );
+          const containDocs = containDocsElement ? "Yes" : "No";
+
           // const num = ++x;
-          return { date, likes, comments, reposts, impressions, isRepost };
+          return {
+            date,
+            likes,
+            comments,
+            reposts,
+            impressions,
+            isRepost,
+            containImage,
+            containArticle,
+            containExternalVideo,
+            containLinkedinVideo,
+            containDocs,
+          };
         });
       });
 
       for (const item of items) {
-        // console.log(`Date: ${item.date}`);
-        // console.log(`likes: ${item.likes}`);
-        // console.log(`comments: ${item.comments}`);
-        // console.log(`reposts: ${item.reposts}`);
-        // console.log(`impressions: ${item.impressions}`);
         worksheet.addRow(item);
       }
       console.log(`items: ${items.length}`);
       const buffer = await workbook.xlsx.writeBuffer();
-
-      // try {
-      //   fs.writeFile;
-      // } catch (err) {
-      //   console.log(err);
-      // }
 
       return { items, buffer };
     };
 
     (async () => {
       const browser = await puppeteer.launch({
-        args: [
-          "--disable-setuid-sandbox",
-          "--no-sandbox",
-          "--single-process",
-          "--no-zygote",
-        ],
-        executablePath:
-          process.env.NODE_ENV === "production"
-            ? process.env.PUPPETEER_EXECUTABLE_PATH
-            : puppeteer.executablePath(),
-        // headless: false,
         headless: "new",
         defaultViewport: { width: 1080, height: 1080 },
         timeout: 0,
       });
       const page = await browser.newPage();
       console.log(`browser launched...`);
-      // await page.setCookie(...cookies);
-      // await page.waitForLoadState();
-      // console.log(`after wait 1`);
       await sleep(2000);
       await page.waitForSelector("body");
-      console.log(`after wait 2`);
-      // const cookiesString = fs.readFileSync("./cookies.json");
-      // const cookies2 = JSON.parse(cookiesString);
+      // console.log(`after wait`);
       await page.setCookie(...JSON.parse(cookies));
-      console.log(`after cookies`);
-
-      // console.log(JSON.parse(cookies), " ****** ", cookies2);
-      // console.log(JSON.stringify(cookies) === cookies2);
+      // console.log(`after cookies`);
 
       await page.goto(url, {
         timeout: 0,
       });
-      console.log(`after goto`);
+      console.log(`URL opening`);
       await sleep(5000);
-      console.log(`after sleep`);
-      const { items, buffer } = await scrapeInfiniteScrollItems(page, 100);
+      // console.log(`after sleep`);
+      const { items, buffer } = await scrapeInfiniteScrollItems(page);
       console.log(`finishing scraping...`);
-      // console.log({ items });
+      console.log({ items });
       await browser.close();
 
       // Set the response headers to download the Excel file
